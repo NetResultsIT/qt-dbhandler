@@ -4,8 +4,8 @@
  *              Francesco Lamonica      <f.lamonica@netresults.it>              *
  ********************************************************************************/
 
-#ifndef _NR_BASE_DBHANDLER_H_
-#define _NR_BASE_DBHANDLER_H_
+#ifndef NR_BASE_DBHANDLER_H
+#define NR_BASE_DBHANDLER_H
 
 #include <QObject>
 #include <QSqlDatabase>
@@ -15,6 +15,11 @@
 
 class Logger;
 
+namespace NRDBHANDLER {
+    const QString SQLITE = "QSQLITE";
+    const QString PSQL = "QPSQL";
+    const QString MYSQL = "QMYSQL";
+};
 
 class DbhConfig
 {
@@ -30,8 +35,8 @@ public:
     WriterConfig logwriterConfig;
     UNQL::LogMessagePriorityType logLevel;
 
-    explicit DbhConfig(const QString &i_dbUser, const QString &i_dbPass, const QString &i_dbHost, const QString &i_dbName)
-        : dbType("QPSQL")
+    explicit DbhConfig(const QString &i_dbHost, const QString &i_dbName, const QString &i_dbUser="", const QString &i_dbPass="")
+        : dbType(NRDBHANDLER::PSQL)
         , dbConnectionName(QLatin1String( QSqlDatabase::defaultConnection ) )
         , dbUser(i_dbUser)
         , dbPass(i_dbPass)
@@ -63,7 +68,7 @@ protected:
     void commitAndClose(const QString &notice="");
 
 public:
-    explicit NrBaseDbHandler(const DbhConfig& dbconf, QObject *parent = 0);
+    explicit NrBaseDbHandler(const DbhConfig& dbconf, QObject *parent = nullptr);
 
     virtual ~NrBaseDbHandler()
     {
