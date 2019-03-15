@@ -94,6 +94,26 @@ NrBaseDbHandler::closeDbConn()
 }
 
 
+/*!
+  \brief a commodity function to create a new query for current connection
+  */
+QSqlQuery
+NrBaseDbHandler::createNewQuery()
+{
+    return QSqlQuery(_M_db);
+}
+
+
+bool
+NrBaseDbHandler::prepareQuery(QSqlQuery &query, const QString &sql)
+{
+    bool ok = query.prepare(sql);
+    if(!ok) {
+        *m_logger << UNQL::LOG_CRITICAL << "PREPARE QUERY ERROR - got error: " << query.lastError().text() << " for query (" << query.lastQuery() << ")" << UNQL::eom;
+    }
+
+    return ok;
+}
 
 /*!
   \brief a commodity function to call a prepared query and log the results
@@ -104,7 +124,7 @@ NrBaseDbHandler::executeQuery(QSqlQuery &query)
 {
     bool ok = query.exec();
     if(!ok) {        
-        *m_logger << UNQL::LOG_CRITICAL << "QUERY ERROR - got error: " << query.lastError().text() << " for query (" << query.lastQuery() << ")" << UNQL::eom;
+        *m_logger << UNQL::LOG_CRITICAL << "EXECUTE QUERY ERROR - got error: " << query.lastError().text() << " for query (" << query.lastQuery() << ")" << UNQL::eom;
     }
 
     return ok;
