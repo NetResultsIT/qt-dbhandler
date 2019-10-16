@@ -49,6 +49,8 @@ public:
     {
 
     }
+
+    void setDbConnectionName(QString connName) {dbConnectionName = connName;}
 };
 
 
