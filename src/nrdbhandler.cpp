@@ -10,6 +10,7 @@
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QSqlResult>
+#include <QFile>
 #include <QDebug>
 #include <QVariant>
 
@@ -134,17 +135,21 @@ NrBaseDbHandler::executeQuery(QSqlQuery &query)
 
 /*!
     \brief a simple test method to check whether the DB is reachable and user can login
-    \return a boolean that is the return value of the openDbConn() method
+    \return true if openDbConn() is successful and, in case Db type is SQLITE, if Db file exists; false otherwise
   */
 bool
 NrBaseDbHandler::testConnection()
 {
-    bool b = false;
-
-    b = this->openDbConn();
+    if (m_DbConf.dbType == NRDBHANDLER::SQLITE && !QFile::exists(m_DbConf.dbName))
+    {
+        return false;
+    }
+    if (!this->openDbConn())
+    {
+        return false;
+    }
     this->closeDbConn();
-
-    return b;
+    return true;
 }
 
 
