@@ -76,6 +76,7 @@ protected:
     DbhConfig m_DbConf;
     QSqlDatabase _M_db;
     Logger *m_logger;
+    bool m_lastQueryFailed;
 
 protected:
     bool openDbConn();
@@ -103,6 +104,7 @@ public:
     inline const QString& dbTimezone() const { return m_DbConf.dbTimeZone; }
     inline const QString& connectionName() const { return m_DbConf.dbConnectionName; }
     inline int dbPort() const { return m_DbConf.dbPort; }
+    inline bool lastQueryFailed() const { return m_lastQueryFailed; }
 };
 
 #endif // DBHANDLER_H

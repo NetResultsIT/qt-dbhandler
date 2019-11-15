@@ -24,6 +24,7 @@
 NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &i_dbconf, QObject *parent)
     : QObject(parent)
     , m_DbConf(i_dbconf)
+    , m_lastQueryFailed(false)
 {
 
     UniqLogger *ul = UniqLogger::instance(m_DbConf.logId);
@@ -112,7 +113,7 @@ NrBaseDbHandler::prepareQuery(QSqlQuery &query, const QString &sql)
     if(!ok) {
         *m_logger << UNQL::LOG_CRITICAL << "PREPARE QUERY ERROR - got error: " << query.lastError().text() << " for query (" << query.lastQuery() << ")" << UNQL::eom;
     }
-
+    m_lastQueryFailed = !ok;
     return ok;
 }
 
@@ -127,7 +128,7 @@ NrBaseDbHandler::executeQuery(QSqlQuery &query)
     if(!ok) {        
         *m_logger << UNQL::LOG_CRITICAL << "EXECUTE QUERY ERROR - got error: " << query.lastError().text() << " for query (" << query.lastQuery() << ")" << UNQL::eom;
     }
-
+    m_lastQueryFailed = !ok;
     return ok;
 }
 
