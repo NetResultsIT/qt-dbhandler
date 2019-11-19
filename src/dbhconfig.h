@@ -2,7 +2,6 @@
 #define DBHCONFIG_H
 
 #include <UniqLogger.h>
-#include <QUuid>
 
 namespace NRDBHANDLER {
     const QString SQLITE = "QSQLITE";
@@ -40,7 +39,7 @@ public:
 
     explicit DbhConfig(const QString &i_dbHost, const QString &i_dbName, const QString &i_dbUser="", const QString &i_dbPass="", const QString &i_dbType=NRDBHANDLER::PSQL, quint16 i_dbPort=5432)
         : dbType(i_dbType)
-        , dbConnectionName( QLatin1String( QSqlDatabase::defaultConnection ) )
+        , dbConnectionName()
         , dbUser(i_dbUser)
         , dbPass(i_dbPass)
         , dbName(i_dbName)
