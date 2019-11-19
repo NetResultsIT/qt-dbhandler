@@ -6,4 +6,5 @@ SOURCES += \
 
 
 HEADERS += \
+    $$PWD/dbhconfig.h \
     $$PWD/nrdbhandler.h

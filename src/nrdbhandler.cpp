@@ -11,6 +11,7 @@
 #include <QSqlRecord>
 #include <QSqlResult>
 #include <QFile>
+#include <QUuid>
 #include <QDebug>
 #include <QVariant>
 
@@ -31,6 +32,11 @@ NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &i_dbconf, QObject *parent)
 
     m_logger = ul->createFileLogger("DB", m_DbConf.logFilename, m_DbConf.logwriterConfig);
     m_logger->setVerbosityAcceptedLevel(m_DbConf.logLevel);
+
+    if (m_DbConf.dbConnectionName.isEmpty())
+    {
+        m_DbConf.dbConnectionName = m_DbConf.dbType + "_" + m_DbConf.dbName + "_" + QUuid::createUuid().toString();
+    }
 
     //check plugins path
     foreach (QString path, QCoreApplication::libraryPaths())
