@@ -24,6 +24,7 @@
 NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &i_dbconf, QObject *parent)
     : QObject(parent)
     , m_DbConf(i_dbconf)
+    , m_errorType(ERROR_NONE)
 {
 
     UniqLogger *ul = UniqLogger::instance(m_DbConf.logId);
@@ -47,6 +48,19 @@ NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &i_dbconf, QObject *parent)
 }
 
 
+void NrBaseDbHandler::setError(NrBaseDbHandler::ErrorType errorType, const QString &errorString)
+{
+    m_errorType = errorType;
+    m_errorString = errorString;
+}
+
+
+void NrBaseDbHandler::resetError()
+{
+    m_errorType = ERROR_NONE;
+    m_errorString = QString();
+}
+
 
 /*!
   \brief opens a connection towards the already configured Database
@@ -58,6 +72,7 @@ NrBaseDbHandler::openDbConn()
     bool ok = true;
     /* qDebug() << "OpenDbConn() -- db is open (" << _M_db.isOpen() <<") -- db is valid ("
             << _M_db.isValid() <<") -- db is openError ("<< _M_db.isOpenError() <<")"; */
+    resetError();
 
     if ( !_M_db.isOpen() || !_M_db.isValid() ) {
         if (_M_db.isOpen()) {
@@ -65,11 +80,12 @@ NrBaseDbHandler::openDbConn()
             *m_logger << UNQL::LOG_CRITICAL << "Database was INVALID but OPEN! -> Closing" << UNQL::eom;
         }
         ok = _M_db.open();
-        if (!ok) {
-            *m_logger << UNQL::LOG_CRITICAL << "------ DB ERROR: " <<  _M_db.lastError().text() << UNQL::eom;
-        } else {
+        if (ok) {
             QSqlQuery q("set timezone to '" + m_DbConf.dbTimeZone + "'", _M_db);
             Q_UNUSED(q);
+        } else {
+            setError(ERROR_OPEN, _M_db.lastError().text());
+            *m_logger << UNQL::LOG_CRITICAL << "------ DB ERROR: " << m_errorString << UNQL::eom;
         }
         //TODO: what if the connection fails???
     }
@@ -108,11 +124,12 @@ NrBaseDbHandler::createNewQuery()
 bool
 NrBaseDbHandler::prepareQuery(QSqlQuery &query, const QString &sql)
 {
+    resetError();
     bool ok = query.prepare(sql);
     if(!ok) {
-        *m_logger << UNQL::LOG_CRITICAL << "PREPARE QUERY ERROR - got error: " << query.lastError().text() << " for query (" << query.lastQuery() << ")" << UNQL::eom;
+        setError(ERROR_QUERY_PREPARE, query.lastError().text());
+        *m_logger << UNQL::LOG_CRITICAL << "PREPARE QUERY ERROR - got error: " << m_errorString << " for query (" << query.lastQuery() << ")" << UNQL::eom;
     }
-
     return ok;
 }
 
@@ -123,11 +140,12 @@ NrBaseDbHandler::prepareQuery(QSqlQuery &query, const QString &sql)
 bool
 NrBaseDbHandler::executeQuery(QSqlQuery &query)
 {
+    resetError();
     bool ok = query.exec();
-    if(!ok) {        
-        *m_logger << UNQL::LOG_CRITICAL << "EXECUTE QUERY ERROR - got error: " << query.lastError().text() << " for query (" << query.lastQuery() << ")" << UNQL::eom;
+    if(!ok) {
+        setError(ERROR_QUERY_EXEC, query.lastError().text());
+        *m_logger << UNQL::LOG_CRITICAL << "EXECUTE QUERY ERROR - got error: " << m_errorString << " for query (" << query.lastQuery() << ")" << UNQL::eom;
     }
-
     return ok;
 }
 
@@ -167,11 +185,12 @@ NrBaseDbHandler::rollbackAndClose(const QString &notice)
 void
 NrBaseDbHandler::commitAndClose(const QString &notice)
 {
+    resetError();
     bool dbact = _M_db.commit();
     if (!dbact) {
+        setError(ERROR_COMMIT, _M_db.lastError().text());
         *m_logger << UNQL::LOG_CRITICAL << "Transaction " << notice << " commit failed" << UNQL::EOM;
     }
-
     closeDbConn();
 }
 

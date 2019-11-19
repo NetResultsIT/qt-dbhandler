@@ -72,10 +72,26 @@ class NrBaseDbHandler : public QObject
 {
     Q_OBJECT
 
+public:
+    enum ErrorType
+    {
+        ERROR_NONE = 0,
+        ERROR_OPEN,
+        ERROR_COMMIT,
+        ERROR_QUERY_PREPARE,
+        ERROR_QUERY_EXEC
+    };
+
+private:
+    void setError(ErrorType errorType, const QString &errorString);
+    void resetError();
+
 protected:
     DbhConfig m_DbConf;
     QSqlDatabase _M_db;
     Logger *m_logger;
+    QString m_errorString;
+    ErrorType m_errorType;
 
 protected:
     bool openDbConn();
@@ -103,6 +119,9 @@ public:
     inline const QString& dbTimezone() const { return m_DbConf.dbTimeZone; }
     inline const QString& connectionName() const { return m_DbConf.dbConnectionName; }
     inline int dbPort() const { return m_DbConf.dbPort; }
+    inline bool hasError() const { return m_errorType != ERROR_NONE; }
+    inline ErrorType getErrorType() const { return m_errorType; }
+    inline QString getErrorString() const { return m_errorString; }
 };
 
 #endif // DBHANDLER_H
