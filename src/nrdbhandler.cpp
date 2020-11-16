@@ -53,6 +53,15 @@ NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &i_dbconf, QObject *parent)
     _M_db.setPassword(m_DbConf.dbPass);
 }
 
+NrBaseDbHandler::~NrBaseDbHandler()
+{
+    QSqlDatabase::removeDatabase(m_DbConf.dbConnectionName);
+    if (m_logger)
+    {
+        delete m_logger;
+        m_logger = nullptr;
+    }
+}
 
 void NrBaseDbHandler::setError(NrBaseDbHandler::ErrorType errorType, const QString &errorString)
 {

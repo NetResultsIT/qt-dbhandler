@@ -50,11 +50,7 @@ protected:
 
 public:
     explicit NrBaseDbHandler(const DbhConfig& dbconf, QObject *parent = nullptr);
-
-    virtual ~NrBaseDbHandler()
-    {
-        QSqlDatabase::removeDatabase(m_DbConf.dbConnectionName);
-    }
+    virtual ~NrBaseDbHandler();
 
     bool testConnection();
 
