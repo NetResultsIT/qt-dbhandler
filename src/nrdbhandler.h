@@ -36,6 +36,7 @@ protected:
     DbhConfig m_DbConf;
     QSqlDatabase _M_db;
     Logger *m_logger;
+    bool m_loggerIsOwned;
     QString m_errorString;
     ErrorType m_errorType;
 
@@ -49,7 +50,7 @@ protected:
     void commitAndClose(const QString &notice="");
 
 public:
-    explicit NrBaseDbHandler(const DbhConfig& dbconf, QObject *parent = nullptr);
+    explicit NrBaseDbHandler(const DbhConfig& dbconf, Logger *logger = nullptr, QObject *parent = nullptr);
     virtual ~NrBaseDbHandler();
 
     bool testConnection();

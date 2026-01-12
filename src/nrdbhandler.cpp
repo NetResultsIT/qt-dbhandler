@@ -21,28 +21,38 @@
 #include <QCoreApplication>
 #include <QStringList>
 
-
-NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &i_dbconf, QObject *parent)
+/*!
+ * \brief ctor
+ * \param dbconf Db config
+ * \param logger logger (optional). If not null, this logger instance
+                 will be used (not owned), otherwise a brand new (owned)
+                 instance will be created based on dbconf settings
+ * \param parent parent object (optional)
+ */
+NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &dbconf, Logger *logger, QObject *parent)
     : QObject(parent)
-    , m_DbConf(i_dbconf)
+    , m_DbConf(dbconf)
+    , m_logger(logger)
+    , m_loggerIsOwned(logger == nullptr)
     , m_errorType(ERROR_NONE)
 {
-
-    UniqLogger *ul = UniqLogger::instance(m_DbConf.logId);
-
-    m_logger = ul->createFileLogger("DB", m_DbConf.logFilename, m_DbConf.logwriterConfig);
-    m_logger->setVerbosityAcceptedLevel(m_DbConf.logLevel);
+    if (m_loggerIsOwned)
+    {
+        // create our own logger (owned)
+        UniqLogger *ul = UniqLogger::instance(m_DbConf.logId);
+        m_logger = ul->createFileLogger("DB", m_DbConf.logFilename, m_DbConf.logwriterConfig);
+        m_logger->setVerbosityAcceptedLevel(m_DbConf.logLevel);
+    }
+    else
+    {
+        // use provided logger (not owned)
+        // m_logger already initialized
+    }
 
     if (m_DbConf.dbConnectionName.isEmpty())
     {
         m_DbConf.dbConnectionName = m_DbConf.dbType + "_" + m_DbConf.dbName + "_" + QUuid::createUuid().toString();
     }
-
-    //check plugins path
-    foreach (QString path, QCoreApplication::libraryPaths())
-        *m_logger << UNQL::LOG_INFO << "library path: " << path << UNQL::eom;
-    foreach (QString plugin, QSqlDatabase::drivers())
-        *m_logger << UNQL::LOG_INFO << "library path: " << plugin << UNQL::eom;
 
     _M_db = QSqlDatabase::addDatabase(m_DbConf.dbType, m_DbConf.dbConnectionName);
 
@@ -56,9 +66,10 @@ NrBaseDbHandler::NrBaseDbHandler(const DbhConfig &i_dbconf, QObject *parent)
 NrBaseDbHandler::~NrBaseDbHandler()
 {
     QSqlDatabase::removeDatabase(m_DbConf.dbConnectionName);
-    if (m_logger)
+    if (m_logger && m_loggerIsOwned)
     {
-        delete m_logger;
+        m_logger->flush();
+        m_logger->deleteLater();
         m_logger = nullptr;
     }
 }
